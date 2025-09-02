@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Enigma da Júlia — 10 Desafios</title>
+  <meta name="color-scheme" content="dark light">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Great+Vibes&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================
+       TEMA ROMÂNTICO — Página única com 10 desafios
+       - Barra de progresso
+       - Corações animados
+       - Confete na conclusão
+       - Comentários // LEMBRETE: para editar facilmente
+       ========================================================= */
+
+    /* Reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: #23262d;
+      background: #0e0f13;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    :root{
+      --pink: #ff6aa0;
+      --rose: #ff9ec2;
+      --violet: #b07cff;
+      --card: rgba(255,255,255,0.12);
+      --card-border: rgba(255,255,255,0.18);
+      --muted: #cdd3df;
+      --shadow: 0 24px 70px rgba(0,0,0,0.35);
+      --ok: #19e68c;
+      --err: #ff7b7b;
+    }
+
+    /* Background */
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(1200px 800px at 10% 15%, rgba(255,106,160,0.20), transparent 60%),
+        radial-gradient(1000px 800px at 85% 85%, rgba(176,124,255,0.18), transparent 60%),
+        linear-gradient(180deg, #0e0f13, #121521 55%);
+      animation: bgfloat 18s ease-in-out infinite alternate;
+      filter: saturate(120%);
+    }
+    @keyframes bgfloat { from { transform: translateY(0) } to { transform: translateY(-10px) } }
+
+    /* Hearts */
+    #hearts { pointer-events: none; position: fixed; inset: 0; z-index: 1; overflow: hidden; }
+    .heart {
+      position: absolute; width: 14px; height: 14px; top: -20px;
+      background: radial-gradient(circle at 30% 30%, #fff 0 25%, rgba(255,255,255,0.2) 60%, transparent 70%),
+                  linear-gradient(45deg, var(--rose), var(--pink));
+      transform: rotate(45deg); border-radius: 2px; opacity: .95;
+      box-shadow: 0 2px 8px rgba(255,106,160,0.35);
+      will-change: transform, opacity;
+      animation: fall linear forwards;
+    }
+    .heart::before, .heart::after { content:""; position:absolute; width:14px; height:14px; background:inherit; border-radius: 50%; top:-7px; left:0; }
+    .heart::after { left:-7px; top:0; }
+    @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: .95 } }
+
+    /* Layout */
+    .wrapper { position: relative; z-index: 2; min-height: 100dvh; display: grid; place-items: center; padding: 28px; }
+    .card {
+      width: min(840px, 94vw);
+      backdrop-filter: blur(14px) saturate(110%);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.06));
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      padding: clamp(20px, 4vw, 36px);
+      box-shadow: var(--shadow);
+      animation: float 7s ease-in-out infinite alternate;
+    }
+    @keyframes float { from { transform: translateY(-2px) } to { transform: translateY(8px) } }
+
+    .title-script {
+      font-family: "Great Vibes", cursive;
+      font-size: clamp(42px, 7vw, 76px); line-height: 1; margin: 0;
+      letter-spacing: .5px;
+      background: linear-gradient(90deg, var(--rose), var(--violet));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      text-align: center;
+    }
+    .subtitle { margin: 8px 0 18px; color: var(--muted); text-align: center; font-weight: 500; }
+
+    /* Progress */
+    .stepbar { height: 10px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; margin: 14px 0 18px; }
+    .progress { height: 100%; width: 0%; background: linear-gradient(90deg, var(--pink), var(--violet)); transition: width .35s ease; }
+
+    .prompt { font-weight: 700; font-size: 16px; margin: 8px 0; }
+    .challenge {
+      background: rgba(255,255,255,0.06);
+      border: 1px dashed rgba(255,255,255,0.25);
+      padding: 14px; border-radius: 16px; white-space: pre-wrap; word-break: break-word; margin: 0 0 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 15px; color: #e9edf6;
+    }
+    .hint { color: var(--muted); margin-bottom: 12px; }
+
+    /* Form */
+    #answerForm { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 6px; }
+    .input {
+      width: 100%; padding: 12px 14px;
+      background: rgba(255,255,255,0.06);
+      color: #e9edf6; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; outline: none;
+      transition: border .2s ease, box-shadow .2s ease;
+    }
+    .input:focus { border-color: rgba(255,106,160,0.6); box-shadow: 0 0 0 4px rgba(255,106,160,0.14); }
+    .btn {
+      border: none; border-radius: 14px; padding: 12px 18px; font-weight: 800; cursor: pointer;
+      transition: transform .08s ease, box-shadow .2s ease, background .2s ease; color: white;
+      background: linear-gradient(135deg, var(--pink), var(--violet)); box-shadow: 0 10px 24px rgba(255,106,160,0.35);
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: #e9edf6; border: 1px solid var(--card-border); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.06); }
+
+    .feedback { min-height: 22px; font-size: 14px; }
+    .feedback.ok { color: var(--ok); }
+    .feedback.error { color: var(--err); }
+
+    .nav { display: flex; gap: 12px; justify-content: space-between; margin-top: 6px; }
+
+    /* Finish */
+    .finish-title { margin: 8px 0 4px; font-size: clamp(24px, 3vw, 32px); }
+    .finish-text { color: var(--muted); margin-bottom: 12px; }
+    .reward { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .code {
+      background: rgba(255,255,255,0.06);
+      padding: 10px 12px; border-radius: 10px; border: 1px dashed rgba(255,255,255,0.25);
+    }
+
+    /* Confetti */
+    #confetti { pointer-events: none; position: fixed; inset: 0; overflow: hidden; z-index: 3; }
+    .confetti-piece { position: absolute; width: 10px; height: 10px; background: white; opacity: .9; top: -12px; will-change: transform, opacity; animation: fallConfetti linear forwards; }
+    @keyframes fallConfetti { to { transform: translateY(110vh) rotate(720deg); opacity: .9 } }
+
+    /* a11y helper */
+    .sr-only { position: absolute !important; height: 1px; width: 1px; overflow: hidden; clip: rect(1px,1px,1px,1px); white-space: nowrap; border: 0; padding: 0; margin: -1px; }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div id="hearts" aria-hidden="true"></div>
+
+  <main class="wrapper" role="main">
+    <section class="card" aria-label="Enigmas Românticos para a Júlia">
+      <h1 class="title-script">Para a Júlia 💖</h1>
+      <p class="subtitle">Dez desafios fofos para destravar uma mensagem especial.</p>
+
+      <div class="stepbar" aria-hidden="true"><div id="progress" class="progress"></div></div>
+
+      <!-- Área do puzzle -->
+      <div class="prompt" id="prompt"></div>
+      <pre class="challenge" id="challenge" aria-live="polite"></pre>
+      <div class="hint" id="hint"></div>
+
+      <form id="answerForm" autocomplete="off" spellcheck="false">
+        <label class="sr-only" for="answerInput">Digite sua resposta</label>
+        <input id="answerInput" class="input" type="text" placeholder="Resposta…" />
+        <button class="btn" type="submit">Enviar</button>
+      </form>
+
+      <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+
+      <div class="nav">
+        <button id="restartBtn" class="btn-ghost" type="button">Reiniciar</button>
+        <span class="muted" id="stepCounter"></span>
+      </div>
+
+      <!-- Tela final -->
+      <section id="finishView" style="display:none" aria-label="Conclusão">
+        <h2 class="finish-title">🎉 Parabéns, Júlia!</h2>
+        <p class="finish-text">Você completou todos os desafios. Aqui está seu recado:</p>
+        <div class="reward">
+          <code id="rewardCode" class="code">https://youtu.be/TXI3t6af0bw 💌</code>
+          <button id="copyBtn" class="btn" type="button">Copiar</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Confetes -->
+  <div id="confetti"></div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    // ===== util =====
+    const $ = (s) => document.querySelector(s);
+    const normalize = (s="") => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"");
+
+    // ===== hearts ambient =====
+    (function hearts(){
+      const root = $("#hearts");
+      const spawn = () => {
+        const el = document.createElement("div");
+        el.className = "heart";
+        const w = innerWidth, x = Math.random()*w, size = 10 + Math.random()*14, dur = 6 + Math.random()*4;
+        el.style.left = x + "px"; el.style.width = el.style.height = size + "px";
+        el.style.animationDuration = dur + "s"; el.style.animationDelay = Math.random()*0.2 + "s";
+        root.appendChild(el);
+        setTimeout(() => el.remove(), (dur+0.6)*1000);
+      };
+      for(let i=0;i<14;i++) setTimeout(spawn, i*120);
+      setInterval(spawn, 700);
+    })();
+
+    // ===== confetti =====
+    const confetti = (count = 150, duration = 2600) => {
+      const root = $("#confetti");
+      const w = innerWidth;
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement("div");
+        el.className = "confetti-piece";
+        el.style.left = (Math.random()*w) + "px";
+        const size = 6 + Math.random()*10;
+        el.style.width = el.style.height = size + "px";
+        const t = 1.8 + Math.random()*1.4;
+        el.style.animationDuration = t + "s";
+        el.style.animationDelay = (Math.random()*0.25) + "s";
+        el.style.background = `hsl(${Math.floor(Math.random()*360)}, 90%, 60%)`;
+        root.appendChild(el);
+        setTimeout(() => el.remove(), duration + Math.random()*1000);
+      }
+    };
+
+    // =========================================================
+    // LEMBRETE: Edite/adicione/remexa desafios no array PUZZLES.
+    // - Campos: id, prompt, challenge, hint, answer (string ou array)
+    // - A validação é simples (texto normalizado). Altere se quiser.
+    // =========================================================
+    const PUZZLES = [
+      {
+        id: "acrostico",
+        prompt: "Acróstico: pegue a 1ª letra de cada linha e forme o nome.",
+        challenge: [
+          "Jamais deixarei de acreditar na gente,",
+          "Unidos até quando o mundo disser não,",
+          "Luz mansa que acolhe os meus dias,",
+          "Infinito é pouco pra te descrever,",
+          "Amor em cada detalhe."
+        ].join("\\n"),
+        hint: "As iniciais escrevem o nome que eu mais amo.",
+        answer: "julia"
+      },
+      {
+        id: "cesar",
+        prompt: "Cifra de César (+3). Decodifique:",
+        challenge: "whdpr",
+        hint: "Desloque cada letra 3 para trás no alfabeto.",
+        answer: "teamo"
+      },
+      {
+        id: "morse",
+        prompt: "Morse. Traduza para texto:",
+        challenge: "-... . .. .--- ---",
+        hint: "• e —; espaço separa letras. Dica: beijo 😘",
+        answer: "beijo"
+      },
+      {
+        id: "base64",
+        prompt: "Base64. Decodifique:",
+        challenge: "bWV1Y29yYWNhbw==",
+        hint: "Use um decodificador de base64 (ou sua mente brilhante).",
+        answer: "meucoracao"
+      },
+      {
+        id: "anagrama",
+        prompt: "Anagrama romântico:",
+        challenge: "ORAM",
+        hint: "Reorganize as letras para uma palavra bem óbvia 😉",
+        answer: "amor"
+      },
+      {
+        id: "a1z26",
+        prompt: "A1Z26 (A=1, B=2, ...). Converta os números:",
+        challenge: "5-21-20-5-1-13-15",
+        hint: "Separe por hífens e mapeie cada número em uma letra.",
+        answer: "euteamo"
+      },
+      {
+        id: "escondida",
+        prompt: "Mensagem escondida (letras MAIÚSCULAS):",
+        challenge: "Jamais eu esperava que naquele Momento aquele Ser humaninho doido iria se ajoelhar naquela praia e me pediria em namoro",
+        hint: "Leia as letras MAIÚSCULAS na ordem em que aparecem.",
+        answer: "JMS" // LEMBRETE: troque por outra esconderijo se quiser
+      },
+      {
+        id: "reverse",
+        prompt: "Inverta e junte sem espaços:",
+        challenge: "om aet eu",
+        hint: "Escreva ao contrário e remova os espaços.",
+        answer: "euteamo"
+      },
+
+      /* ====== NOVOS (9 e 10) ====== */
+
+      // 9) Naruto — gesto do Itachi
+      {
+        id: "naruto_reference",
+        prompt: "Referência: em Naruto, qual o gesto que Itachi sempre faz no Sasuke?",
+        challenge: "É um gesto simples, mas cheio de amor. Qual é?",
+        hint: "👉 Resposta curta, duas palavras.",
+        // LEMBRETE: pode aceitar variações — basta usar array:
+        answer: ["dedonatesta", "toquenatesta" ,"toque na testa" , "dedo na testa"]
+      },
+
+      // 10) CHALÉ — Base64 → Binário → Morse → César −3
+      {
+        id: "chale_b64_bin_morse_cesar",
+        prompt: "Desafio em camadas (Base64 → Binário → Morse → César −3):",
+        challenge: "MDAxMDExMTAgMDAxMDExMTAgMDAxMDExMDEgMDAxMDExMTAgMDAxMDAwMDAgMDAxMDExMDEgMDAxMDExMTAgMDAxMDExMDEgMDAxMDAwMDAgMDAxMDExMDEgMDAxMDExMTAgMDAxMDExMTAgMDAxMDAwMDAgMDAxMDExMDEgMDAxMDExMDEgMDAxMDExMDEgMDAxMDAwMDAgMDAxMDExMTAgMDAxMDExMTAgMDAxMDExMTAgMDAxMDExMTA=",
+        hint: "Passos: (1) Decodifique Base64. (2) Interprete como BINÁRIO ASCII (grupos de 8 bits) e converta para texto. (3) Esse texto é MORSE: traduza. (4) Aplique CÉSAR com deslocamento −3 para chegar numa palavra em PT-BR (tem acento).",
+        // LEMBRETE: o validador normaliza acento e espaços; 'CHALÉ' e 'chale' funcionam.
+        answer: "chale"
+      }
+    ];
+
+    // ===== state & dom =====
+    let step = 0;
+    const promptEl = $("#prompt");
+    const challengeEl = $("#challenge");
+    const hintEl = $("#hint");
+    const input = $("#answerInput");
+    const feedbackEl = $("#feedback");
+    const form = $("#answerForm");
+    const progressEl = $("#progress");
+    const stepCounter = $("#stepCounter");
+    const finishView = $("#finishView");
+    const copyBtn = $("#copyBtn");
+    const rewardCode = $("#rewardCode");
+    const restartBtn = $("#restartBtn");
+
+    const renderStep = () => {
+      const p = PUZZLES[step];
+      promptEl.textContent = p.prompt;
+      challengeEl.textContent = p.challenge;
+      hintEl.textContent = "💡 " + p.hint;
+      feedbackEl.textContent = "";
+      feedbackEl.className = "feedback";
+      input.value = "";
+      input.focus();
+      const pct = Math.round((step / PUZZLES.length) * 100);
+      progressEl.style.width = pct + "%";
+      stepCounter.textContent = `Desafio ${step+1} de ${PUZZLES.length}`;
+      finishView.style.display = "none";
+    };
+
+    const start = () => { step = 0; renderStep(); };
+    const restart = () => { start(); };
+
+    // ===== validate (aceita string OU array) =====
+    const submit = (e) => {
+      e.preventDefault();
+      const p = PUZZLES[step];
+      const user = normalize(input.value);
+      if (!user) {
+        feedbackEl.textContent = "Digite algo 😉";
+        feedbackEl.className = "feedback error";
+        return;
+      }
+      const answers = Array.isArray(p.answer) ? p.answer : [p.answer];
+      const ok = answers.map(normalize).includes(user);
+
+      if (ok) {
+        feedbackEl.textContent = "✔ Correto!";
+        feedbackEl.className = "feedback ok";
+        step++;
+        if (step < PUZZLES.length) {
+          setTimeout(renderStep, 500);
+        } else {
+          progressEl.style.width = "100%";
+          finishView.style.display = "block";
+          confetti(160, 3000);
+          // LEMBRETE: edite a mensagem final no <code id="rewardCode"> no HTML
+        }
+      } else {
+        feedbackEl.textContent = "❌ Ainda não. Dica: veja a pista com carinho.";
+        feedbackEl.className = "feedback error";
+        input.select();
+      }
+    };
+
+    // ===== binds =====
+    form.addEventListener("submit", submit);
+    restartBtn.addEventListener("click", restart);
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(rewardCode.textContent.trim());
+        copyBtn.textContent = "Copiado!";
+        setTimeout(() => copyBtn.textContent = "Copiar", 1400);
+      } catch {
+        const r = document.createRange(); r.selectNode(rewardCode);
+        const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        document.execCommand("copy"); sel.removeAllRanges();
+        copyBtn.textContent = "Copiado!"; setTimeout(() => copyBtn.textContent = "Copiar", 1400);
+      }
+    });
+
+    // init
+    start();
+  })();
+  </script>
+</body>
+</html>

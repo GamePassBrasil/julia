@@ -1,0 +1,248 @@
+# Create a romantic "Start" landing page (single-file) for Julia's enigma
+html = """<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Enigma da Júlia — Página Inicial</title>
+  <meta name="color-scheme" content="dark light">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Great+Vibes&display=swap" rel="stylesheet">
+
+  <style>
+    /* ===== Reset ===== */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: #23262d;
+      background: #0e0f13;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    :root{
+      --pink: #ff6aa0;
+      --rose: #ff9ec2;
+      --violet: #b07cff;
+      --card: rgba(255,255,255,0.12);
+      --card-border: rgba(255,255,255,0.18);
+      --muted: #cdd3df;
+      --shadow: 0 24px 70px rgba(0,0,0,0.35);
+    }
+
+    /* ===== Animated dreamy background ===== */
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(1200px 800px at 10% 15%, rgba(255,106,160,0.20), transparent 60%),
+        radial-gradient(1000px 800px at 85% 85%, rgba(176,124,255,0.18), transparent 60%),
+        linear-gradient(180deg, #0e0f13, #121521 55%);
+      animation: bgfloat 18s ease-in-out infinite alternate;
+      filter: saturate(120%);
+    }
+    @keyframes bgfloat {
+      from { transform: translateY(0) scale(1); }
+      to   { transform: translateY(-10px) scale(1.02); }
+    }
+
+    /* Floating hearts (ambient) */
+    #hearts {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      overflow: hidden;
+    }
+    .heart {
+      position: absolute;
+      width: 14px; height: 14px;
+      background: radial-gradient(circle at 30% 30%, #fff 0 25%, rgba(255,255,255,0.2) 60%, transparent 70%),
+                  linear-gradient(45deg, var(--rose), var(--pink));
+      transform: rotate(45deg);
+      border-radius: 2px;
+      box-shadow: 0 2px 8px rgba(255,106,160,0.35);
+      opacity: .9;
+      top: -20px;
+      will-change: transform, opacity;
+      animation: fall linear forwards;
+    }
+    .heart::before, .heart::after {
+      content: "";
+      position: absolute;
+      width: 14px; height: 14px;
+      background: inherit;
+      border-radius: 50%;
+      top: -7px; left: 0;
+    }
+    .heart::after { left: -7px; top: 0; }
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0.95; }
+    }
+
+    /* ===== Layout ===== */
+    .wrapper {
+      position: relative;
+      z-index: 2;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+    }
+    .card {
+      width: min(760px, 94vw);
+      backdrop-filter: blur(14px) saturate(110%);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.06));
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      padding: clamp(20px, 4vw, 36px);
+      box-shadow: var(--shadow);
+      animation: float 7s ease-in-out infinite alternate;
+    }
+    @keyframes float {
+      from { transform: translateY(-2px); }
+      to   { transform: translateY(8px); }
+    }
+
+    .title-script {
+      font-family: "Great Vibes", cursive;
+      font-size: clamp(44px, 8vw, 80px);
+      line-height: 1;
+      margin: 0;
+      letter-spacing: .5px;
+      background: linear-gradient(90deg, var(--rose), var(--violet));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-align: center;
+    }
+    .subtitle {
+      margin: 8px 0 18px;
+      color: var(--muted);
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .info {
+      background: rgba(255,255,255,0.06);
+      border: 1px dashed rgba(255,255,255,0.25);
+      border-radius: 16px;
+      padding: 16px;
+      margin: 14px 0 18px;
+      color: #e9edf6;
+    }
+    .info h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      letter-spacing: .4px;
+      color: #f6dfff;
+    }
+    .info p {
+      margin: 0;
+      color: #e8e8f1;
+    }
+
+    .cta {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 16px;
+      justify-items: center;
+    }
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .08s ease, box-shadow .2s ease, background .2s ease;
+      color: white;
+      background: linear-gradient(135deg, var(--pink), var(--violet));
+      box-shadow: 0 10px 24px rgba(255,106,160,0.35);
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .footer-note {
+      margin-top: 12px;
+      text-align: center;
+      color: #d9deeb;
+      font-size: 13px;
+      opacity: .9;
+    }
+
+    /* Small a11y helper */
+    .sr-only {
+      position: absolute !important;
+      height: 1px; width: 1px;
+      overflow: hidden; clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap; border: 0; padding: 0; margin: -1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div id="hearts" aria-hidden="true"></div>
+
+  <main class="wrapper" role="main">
+    <section class="card" aria-label="Página inicial do Enigma da Júlia">
+      <h1 class="title-script">Para a Júlia 💖</h1>
+      <p class="subtitle">Um caminho de enigmas, pistas e mensagens — feito com amor.</p>
+
+      <!-- Campo de informações (edite o conteúdo abaixo) -->
+      <div class="info" id="infoBox">
+        <h2>Informações iniciais</h2>
+        <p>
+            Olá, meu amor! Este é o começo de um enigma especial que preparei para você. Ao longo do caminho, você encontrará várias pistas e mensagens que levarão a um final surpresa. Aqui estão algumas dicas para começar:
+          <br>As respostas têm a ver com coisas que vivemos juntos, lugares que fomos, músicas que gostamos e momentos especiais que compartilhamos. ( TUDO CRIPTOGRAFIA REAL TÁ? )
+        </p>
+      </div>
+
+      <div class="cta">
+        <!-- Botão que levará à primeira página de enigmas (atualize o href quando criar) -->
+        <a class="btn" href="pagina1final.html" aria-label="Ir para o primeiro enigma">COMEÇAR O ENIGMA</a>
+      </div>
+
+      <p class="footer-note">Feito com carinho pelo seu Namorado Johnnie. ✨</p>
+    </section>
+  </main>
+
+  <script>
+    // ===== Ambient hearts animation (soft & lightweight) =====
+    (function() {
+      const root = document.getElementById("hearts");
+      const spawn = () => {
+        const el = document.createElement("div");
+        el.className = "heart";
+        const w = window.innerWidth;
+        const x = Math.random() * w;
+        const size = 10 + Math.random() * 14;
+        const dur = 6 + Math.random() * 4;
+        el.style.left = x + "px";
+        el.style.width = el.style.height = size + "px";
+        el.style.animationDuration = dur + "s";
+        el.style.animationDelay = Math.random() * 0.2 + "s";
+        root.appendChild(el);
+        setTimeout(() => el.remove(), (dur + 0.5) * 1000);
+      };
+
+      // Burst on load
+      for (let i = 0; i < 14; i++) setTimeout(spawn, i * 120);
+
+      // Gentle continuous spawn
+      setInterval(spawn, 650);
+    })();
+  </script>
+</body>
+</html>
+"""
+
+path = "/mnt/data/julia_enigma_start.html"
+with open(path, "w", encoding="utf-8") as f:
+    f.write(html)
+
+path
